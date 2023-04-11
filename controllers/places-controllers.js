@@ -38,8 +38,24 @@ let DUMMY_PLACES = [
   },
 ];
 
-const getAllPlaces = (req, res, next) => {
-  res.json({ DUMMY_PLACES });
+const getAllPlaces = async (req, res, next) => {
+  // res.json({ DUMMY_PLACES });
+
+  try {
+    const result = await Place.find();
+    res
+      .status(200)
+      .json({
+        message: "Successfully get all data from database!",
+        data: result,
+      });
+  } catch (err) {
+    const error = new HttpError(
+      `Failed to created new data because of ${err.message}`,
+      500
+    );
+    return next(error);
+  }
 };
 
 const getPlacesByUserId = (req, res, next) => {
