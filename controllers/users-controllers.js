@@ -77,21 +77,31 @@ const signUp = async (req, res, next) => {
     .json({ message: "Successfully added a new user!", data: newUser });
 };
 
-const login = (req, res, next) => {
+const login = async (req, res, next) => {
   const { email, password } = req.body;
 
-  const loginUser = DUMMY_USERS.find((user) => user.email === email);
+  let userExist;
 
-  if (!loginUser) {
-    throw new HttpError(`Cannot find an user with email of ${email}`, 401);
-  } else if (loginUser.password !== password) {
-    throw new HttpError(
-      `Password does not match with user with email of ${email}`,
-      401
+  try {
+    userExist = await User.findOne({ email: email });
+  } catch (err) {
+    const error = new HttpError(
+      `Cannot find a user with email of ${email}`,
+      500
+    );
+    return next(error);
+  }
+
+  if (!userExist || userExist.password !== password) {
+    return next(
+      new HttpError(
+        "Invalid credential, please input correct email and password!",
+        401
+      )
     );
   }
 
-  res.status(200).json({ message: "Successfull login!" });
+  res.status(200).json({ message: "Login Success!" });
 };
 
 exports.getAllUsers = getAllUsers;
