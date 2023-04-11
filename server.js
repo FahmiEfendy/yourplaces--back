@@ -1,4 +1,5 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
 
 const HttpError = require("./models/http-error");
@@ -25,4 +26,12 @@ app.use((error, req, res, next) => {
   res.json({ message: error.message || "An unknown error occured!" });
 });
 
-app.listen(5000);
+mongoose
+  .connect(
+    "mongodb+srv://fahmiefendy:fahmiefendy1102@cluster-place.arkm4vk.mongodb.net/?retryWrites=true&w=majority"
+  )
+  .then(() => {
+    console.log("Successfully connected to database!");
+    app.listen(5000);
+  })
+  .catch(() => console.log("Failed to connect to database!"));
