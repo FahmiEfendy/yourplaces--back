@@ -178,7 +178,7 @@ const createPlace = async (req, res, next) => {
   }
 };
 
-const updatePlace = (req, res, next) => {
+const updatePlace = async (req, res, next) => {
   const error = validationResult(req);
   if (!error.isEmpty()) {
     throw new HttpError(
@@ -189,20 +189,53 @@ const updatePlace = (req, res, next) => {
   const { title, description } = req.body;
   const placeId = req.params.pid;
 
-  const updatedPlace = {
-    ...DUMMY_PLACES.find((place) => place.id === placeId),
-  };
+  // const updatedPlace = {
+  //   ...DUMMY_PLACES.find((place) => place.id === placeId),
+  // };
 
-  const placeIndex = DUMMY_PLACES.findIndex((place) => place.id === placeId);
+  // const placeIndex = DUMMY_PLACES.findIndex((place) => place.id === placeId);
 
-  updatedPlace.title = title;
-  updatedPlace.description = description;
+  // updatedPlace.title = title;
+  // updatedPlace.description = description;
 
-  DUMMY_PLACES[placeIndex] = updatedPlace;
+  // DUMMY_PLACES[placeIndex] = updatedPlace;
 
-  res
-    .status(200)
-    .json({ message: "Successfully updated a data!", data: updatedPlace });
+  let selectedPlace;
+
+  try {
+    selectedPlace = await Place.findById(placeId);
+  } catch (err) {
+    const error = new HttpError(
+      `Failed to get a place with id of ${placeId} because of ${err.message}`,
+      500
+    );
+    return next(error);
+  }
+
+  if (!selectedPlace) {
+    const error = new HttpError(`There is no place with id of ${placeId}`, 404);
+    // const error = new Error(`Could not find place with id of ${placeId}`);
+    // error.code = 404;
+    return next(error);
+  }
+
+  selectedPlace.title = title;
+  selectedPlace.description = description;
+
+  try {
+    await selectedPlace.save();
+  } catch (err) {
+    const error = new HttpError(
+      `Failed to update a place with id of ${placeId} because of ${err.message}`,
+      500
+    );
+    return next(error);
+  }
+
+  res.status(200).json({
+    message: "Successfully updated a data!",
+    data: selectedPlace.toObject({ getters: true }),
+  });
 };
 
 const deletePlace = (req, res, next) => {
