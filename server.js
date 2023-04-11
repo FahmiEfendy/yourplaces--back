@@ -2,7 +2,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
 
-const Place = require("./models/place");
 const HttpError = require("./models/http-error");
 
 const placesRoutes = require("./routes/places-routes");

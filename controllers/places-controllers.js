@@ -1,6 +1,7 @@
 const uuid = require("uuid");
 const { validationResult } = require("express-validator");
 
+const Place = require("../models/place");
 const HttpError = require("../models/http-error");
 const addressToCoordinates = require("../utils/location");
 
@@ -92,20 +93,39 @@ const createPlace = async (req, res, next) => {
     return next(error);
   }
 
-  const newPlace = {
-    id: uuid.v4(),
+  // const newPlace = {
+  //   id: uuid.v4(),
+  //   title,
+  //   description,
+  //   address,
+  //   coordinates,
+  //   creator,
+  // };
+
+  // DUMMY_PLACES.push(newPlace);
+
+  const newPlace = new Place({
     title,
     description,
+    image:
+      "https://img.okezone.com/content/2022/02/04/337/2542154/mengenal-raja-yang-meratakan-puncak-bukit-demi-membangun-candi-borobudur-thVuwzm6PE.jpg",
     address,
     coordinates,
     creator,
-  };
+  });
 
-  DUMMY_PLACES.push(newPlace);
-
-  res
-    .status(201)
-    .json({ message: "Successfully created new data!", data: newPlace });
+  try {
+    const result = await newPlace.save();
+    res
+      .status(201)
+      .json({ message: "Successfully created new data!", data: result });
+  } catch (err) {
+    const error = new HttpError(
+      `Failed to created new data because of ${err.message}`,
+      500
+    );
+    return next(error);
+  }
 };
 
 const updatePlace = (req, res, next) => {
