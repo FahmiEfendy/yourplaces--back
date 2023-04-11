@@ -5,22 +5,6 @@ const User = require("../models/user");
 
 const HttpError = require("../models/http-error");
 
-// const DUMMY_USERS = [
-//   {
-//     id: "u1",
-//     name: "Max Schwarz",
-//     image:
-//       "https://images.pexels.com/photos/839011/pexels-photo-839011.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=750&w=1260",
-//     places: 3,
-//   },
-//   {
-//     id: "u2",
-//     name: "Fahmi Efendy",
-//     image:
-//       "https://wallpapers-clan.com/wp-content/uploads/2022/07/funny-cat-9.jpg",
-//     places: 1,
-//   },
-// ];
 const DUMMY_USERS = [
   {
     id: "u1",
@@ -40,30 +24,53 @@ const getAllUsers = (req, res, next) => {
   res.json({ DUMMY_USERS });
 };
 
-const signUp = (req, res, next) => {
+const signUp = async (req, res, next) => {
   const error = validationResult(req);
   if (!error.isEmpty()) {
-    throw new HttpError(
-      `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
+    return next(
+      new HttpError(
+        `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
+      )
     );
   }
 
-  const { name, email, password } = req.body;
+  const { name, email, password, places } = req.body;
 
-  const userExist = DUMMY_USERS.find((user) => user.email === email);
+  let userExist;
 
-  if (userExist) {
-    throw new HttpError(`User with email of ${email} already exist!`, 422);
+  try {
+    userExist = await User.findOne({ email: email });
+  } catch (err) {
+    const error = new HttpError(
+      `Cannot find a user with email of ${email}`,
+      500
+    );
+    return next(error);
   }
 
-  const newUser = {
-    id: uuid.v4(),
+  if (userExist) {
+    return next(
+      new HttpError(`User with email of ${email} already exist!`, 422)
+    );
+  }
+
+  const newUser = new User({
     name,
     email,
+    image: "https://wallpapers.com/images/featured/v24i6v24vmtk4ygu.jpg",
     password,
-  };
+    places,
+  });
 
-  DUMMY_USERS.push(newUser);
+  try {
+    await newUser.save();
+  } catch (err) {
+    const error = new HttpError(
+      `Failed to created new data because of ${err.message}`,
+      500
+    );
+    return next(error);
+  }
 
   res
     .status(201)

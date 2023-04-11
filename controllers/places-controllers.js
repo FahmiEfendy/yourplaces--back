@@ -91,7 +91,7 @@ const createPlace = async (req, res, next) => {
   const error = validationResult(req);
   if (!error.isEmpty()) {
     return next(
-      HttpError(
+      new HttpError(
         `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
       )
     );
@@ -133,8 +133,10 @@ const createPlace = async (req, res, next) => {
 const updatePlace = async (req, res, next) => {
   const error = validationResult(req);
   if (!error.isEmpty()) {
-    throw new HttpError(
-      `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
+    return next(
+      HttpError(
+        `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
+      )
     );
   }
 
