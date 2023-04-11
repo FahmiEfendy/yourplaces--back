@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
 
+const Place = require("./models/place");
 const HttpError = require("./models/http-error");
 
 const placesRoutes = require("./routes/places-routes");
@@ -34,4 +35,4 @@ mongoose
     console.log("Successfully connected to database!");
     app.listen(5000);
   })
-  .catch(() => console.log("Failed to connect to database!"));
+  .catch((error) => console.log("Failed to connect to database!", error));
