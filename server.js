@@ -4,8 +4,8 @@ const bodyParser = require("body-parser"); // Parse any incoming body to extract
 
 const HttpError = require("./models/http-error");
 
-const placesRoutes = require("./routes/places-routes");
 const usersRoutes = require("./routes/users-routes");
+const placesRoutes = require("./routes/places-routes");
 
 const app = express();
 

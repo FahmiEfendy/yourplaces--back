@@ -47,11 +47,6 @@ const getPlacesByUserId = async (req, res, next) => {
     );
 
     return next(error);
-    // const error = new Error(
-    //   `Could not find place from user with id of ${userId}`
-    // );
-    // error.code = 404;
-    // throw error; // or return next (error)
   }
 
   res.status(200).json({
@@ -77,8 +72,6 @@ const getPlaceByPlaceId = async (req, res, next) => {
 
   if (!selectedPlace) {
     const error = new HttpError(`There is no place with id of ${placeId}`, 404);
-    // const error = new Error(`Could not find place with id of ${placeId}`);
-    // error.code = 404;
     return next(error);
   }
 
@@ -131,7 +124,6 @@ const createPlace = async (req, res, next) => {
     );
   }
 
-  // Check if there is a user with provided userId (creator)
   if (!user) {
     return next(new HttpError(`There is no user with id of ${creator}`, 404));
   }
@@ -184,8 +176,6 @@ const updatePlace = async (req, res, next) => {
 
   if (!selectedPlace) {
     const error = new HttpError(`There is no place with id of ${placeId}`, 404);
-    // const error = new Error(`Could not find place with id of ${placeId}`);
-    // error.code = 404;
     return next(error);
   }
 
@@ -227,8 +217,6 @@ const deletePlace = async (req, res, next) => {
 
   if (!selectedPlace) {
     const error = new HttpError(`There is no place with id of ${placeId}`, 404);
-    // const error = new Error(`Could not find place with id of ${placeId}`);
-    // error.code = 404;
     return next(error);
   }
 
@@ -243,7 +231,6 @@ const deletePlace = async (req, res, next) => {
     );
   }
 
-  // Check if there is a user with provided userId (creator)
   if (!user) {
     return next(new HttpError(`There is no user with id of ${creator}`, 404));
   }
