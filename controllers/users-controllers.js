@@ -1,27 +1,25 @@
-const uuid = require("uuid");
 const { validationResult } = require("express-validator");
 
 const User = require("../models/user");
 
 const HttpError = require("../models/http-error");
 
-const DUMMY_USERS = [
-  {
-    id: "u1",
-    name: "Max Schwarz",
-    email: "max_schwarz@gmail.com",
-    password: "max_schwarz",
-  },
-  {
-    id: "u2",
-    name: "Fahmi Efendy",
-    email: "fahmi_efendy@gmail.com",
-    password: "fahmi_efendy",
-  },
-];
+const getAllUsers = async (req, res, next) => {
+  let allUsers;
 
-const getAllUsers = (req, res, next) => {
-  res.json({ DUMMY_USERS });
+  try {
+    // "-" : exclude a Property
+    allUsers = await User.find({}, "-password");
+  } catch (err) {
+    return next(
+      new HttpError(`Failed to get all user because of ${err.message}`, 500)
+    );
+  }
+
+  res.status(200).json({
+    message: "Successfully get all users data",
+    data: allUsers.map((user) => user.toObject({ getters: true })),
+  });
 };
 
 const signUp = async (req, res, next) => {
@@ -34,7 +32,7 @@ const signUp = async (req, res, next) => {
     );
   }
 
-  const { name, email, password, places } = req.body;
+  const { name, email, password } = req.body;
 
   let userExist;
 
@@ -59,7 +57,7 @@ const signUp = async (req, res, next) => {
     email,
     image: "https://wallpapers.com/images/featured/v24i6v24vmtk4ygu.jpg",
     password,
-    places,
+    places: [],
   });
 
   try {
