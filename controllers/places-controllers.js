@@ -31,7 +31,7 @@ const getPlacesByUserId = async (req, res, next) => {
   let userWithPlaces;
 
   try {
-    userWithPlaces = await Place.find({ creator: userId }).populate();
+    userWithPlaces = await User.findById(userId);
   } catch (err) {
     const error = new HttpError(
       `Failed to get all places from user with id of ${userId} because of ${err.message}`,
@@ -40,7 +40,7 @@ const getPlacesByUserId = async (req, res, next) => {
     return next(error);
   }
 
-  if (!userWithPlaces || userWithPlaces.length < 1) {
+  if (!userWithPlaces || userWithPlaces.places.length < 1) {
     const error = new HttpError(
       `User with user id of ${userId} dont have a place!`,
       404
@@ -51,7 +51,9 @@ const getPlacesByUserId = async (req, res, next) => {
 
   res.status(200).json({
     message: `Successfully get all place from user with id of ${userId}`,
-    data: userWithPlaces.map((place) => place.toObject({ getters: true })),
+    data: userWithPlaces.places.map((place) =>
+      place.toObject({ getters: true })
+    ),
   });
 };
 
