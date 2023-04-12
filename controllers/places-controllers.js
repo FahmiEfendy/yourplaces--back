@@ -1,5 +1,7 @@
+const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 
+const User = require("../models/user");
 const Place = require("../models/place");
 const HttpError = require("../models/http-error");
 const addressToCoordinates = require("../utils/location");
@@ -100,6 +102,8 @@ const createPlace = async (req, res, next) => {
   const { title, description, address, creator } = req.body;
 
   let coordinates;
+  let user;
+
   try {
     coordinates = await addressToCoordinates(address);
   } catch (error) {
@@ -117,10 +121,28 @@ const createPlace = async (req, res, next) => {
   });
 
   try {
-    const result = await newPlace.save();
-    res
-      .status(201)
-      .json({ message: "Successfully created new data!", data: result });
+    user = await User.findById(creator);
+  } catch (err) {
+    return next(
+      new HttpError(
+        `Failed to find a user with id of ${creator} because of ${err.message}`
+      ),
+      500
+    );
+  }
+
+  // Check if there is a user with provided userId (creator)
+  if (!user) {
+    return next(new HttpError(`There is no user with id of ${creator}`, 404));
+  }
+
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await newPlace.save({ session: sess }); // Activate Session
+    user.places.push(newPlace); // Add newPlace to user
+    await user.save({ session: sess }); // Activate Session
+    await sess.commitTransaction(); // Run changes from activated session
   } catch (err) {
     const error = new HttpError(
       `Failed to created new data because of ${err.message}`,
@@ -128,6 +150,11 @@ const createPlace = async (req, res, next) => {
     );
     return next(error);
   }
+
+  res.status(201).json({
+    message: "Successfully created new data!",
+    data: newPlace.toObject({ getters: true }),
+  });
 };
 
 const updatePlace = async (req, res, next) => {

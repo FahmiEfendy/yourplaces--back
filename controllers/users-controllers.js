@@ -72,7 +72,10 @@ const signUp = async (req, res, next) => {
 
   res
     .status(201)
-    .json({ message: "Successfully added a new user!", data: newUser });
+    .json({
+      message: "Successfully added a new user!",
+      data: newUser.toObject({ getters: true }),
+    });
 };
 
 const login = async (req, res, next) => {
