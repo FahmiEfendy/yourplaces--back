@@ -212,9 +212,11 @@ const deletePlace = async (req, res, next) => {
   const placeId = req.params.pid;
 
   let selectedPlace;
+  let user;
 
   try {
-    selectedPlace = await Place.findById(placeId);
+    // populate(): Expand property creator in place
+    selectedPlace = await Place.findById(placeId).populate("creator");
   } catch (err) {
     const error = new HttpError(
       `Failed to get a place with id of ${placeId} because of ${err.message}`,
@@ -231,7 +233,28 @@ const deletePlace = async (req, res, next) => {
   }
 
   try {
-    await selectedPlace.deleteOne();
+    user = await User.findById(selectedPlace.creator.id);
+  } catch (err) {
+    return next(
+      new HttpError(
+        `Failed to find a user with id of ${creator} because of ${err.message}`
+      ),
+      500
+    );
+  }
+
+  // Check if there is a user with provided userId (creator)
+  if (!user) {
+    return next(new HttpError(`There is no user with id of ${creator}`, 404));
+  }
+
+  try {
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await selectedPlace.deleteOne({ session: sess }); // Delete a place
+    selectedPlace.creator.places.pull(selectedPlace);
+    await selectedPlace.creator.save({ session: sess }); // Delete a place from user
+    await sess.commitTransaction();
   } catch (err) {
     const error = new HttpError(
       `Failed to delete a place with id of ${placeId} because of ${err.message}`,
