@@ -28,10 +28,10 @@ const getAllPlaces = async (req, res, next) => {
 const getPlacesByUserId = async (req, res, next) => {
   const userId = req.params.uid;
 
-  let places;
+  let userWithPlaces;
 
   try {
-    places = await Place.find({ creator: userId });
+    userWithPlaces = await Place.find({ creator: userId }).populate();
   } catch (err) {
     const error = new HttpError(
       `Failed to get all places from user with id of ${userId} because of ${err.message}`,
@@ -40,7 +40,7 @@ const getPlacesByUserId = async (req, res, next) => {
     return next(error);
   }
 
-  if (!places || places.length < 1) {
+  if (!userWithPlaces || userWithPlaces.length < 1) {
     const error = new HttpError(
       `User with user id of ${userId} dont have a place!`,
       404
@@ -56,7 +56,7 @@ const getPlacesByUserId = async (req, res, next) => {
 
   res.status(200).json({
     message: `Successfully get all place from user with id of ${userId}`,
-    data: places.map((place) => place.toObject({ getters: true })),
+    data: userWithPlaces.map((place) => place.toObject({ getters: true })),
   });
 };
 
