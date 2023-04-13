@@ -11,6 +11,19 @@ const app = express();
 
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+  // Specify what IP Address allowed to access resource
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  // Specify what headers allowed to use
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  // Specify what methods allowed to use
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE");
+  next();
+});
+
 app.use("/api/places", placesRoutes); // api/places/...
 app.use("/api/users", usersRoutes); // api/users/...
 
