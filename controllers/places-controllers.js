@@ -1,3 +1,4 @@
+const fs = require("fs");
 const mongoose = require("mongoose");
 const { validationResult } = require("express-validator");
 
@@ -222,6 +223,8 @@ const deletePlace = async (req, res, next) => {
     return next(error);
   }
 
+  const imagePath = selectedPlace.image;
+
   try {
     user = await User.findById(selectedPlace.creator.id);
   } catch (err) {
@@ -251,6 +254,8 @@ const deletePlace = async (req, res, next) => {
     );
     return next(error);
   }
+
+  fs.unlink(imagePath, (err) => console.log(err));
 
   res
     .status(200)
