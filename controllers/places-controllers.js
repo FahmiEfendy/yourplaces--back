@@ -31,7 +31,7 @@ const getPlacesByUserId = async (req, res, next) => {
   let userWithPlaces;
 
   try {
-    userWithPlaces = await User.findById(userId);
+    userWithPlaces = await User.findById(userId).populate("places");
   } catch (err) {
     const error = new HttpError(
       `Failed to get all places from user with id of ${userId} because of ${err.message}`,
@@ -51,9 +51,10 @@ const getPlacesByUserId = async (req, res, next) => {
 
   res.status(200).json({
     message: `Successfully get all place from user with id of ${userId}`,
-    data: userWithPlaces.places.map((place) =>
-      place.toObject({ getters: true })
-    ),
+    // data: userWithPlaces.places.map((place) =>
+    //   place.toObject({ getters: true })
+    // ),
+    data: userWithPlaces.toObject({ getters: true }),
   });
 };
 

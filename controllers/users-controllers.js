@@ -70,12 +70,10 @@ const signUp = async (req, res, next) => {
     return next(error);
   }
 
-  res
-    .status(201)
-    .json({
-      message: "Successfully added a new user!",
-      data: newUser.toObject({ getters: true }),
-    });
+  res.status(201).json({
+    message: "Successfully added a new user!",
+    data: newUser.toObject({ getters: true }),
+  });
 };
 
 const login = async (req, res, next) => {
@@ -102,7 +100,12 @@ const login = async (req, res, next) => {
     );
   }
 
-  res.status(200).json({ message: "Login Success!" });
+  res
+    .status(200)
+    .json({
+      message: "Login Success!",
+      data: userExist.toObject({ getters: true }),
+    });
 };
 
 exports.getAllUsers = getAllUsers;
