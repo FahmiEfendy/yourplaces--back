@@ -55,7 +55,7 @@ const signUp = async (req, res, next) => {
   const newUser = new User({
     name,
     email,
-    image: "https://wallpapers.com/images/featured/v24i6v24vmtk4ygu.jpg",
+    image: req.file.path,
     password,
     places: [],
   });
@@ -100,12 +100,10 @@ const login = async (req, res, next) => {
     );
   }
 
-  res
-    .status(200)
-    .json({
-      message: "Login Success!",
-      data: userExist.toObject({ getters: true }),
-    });
+  res.status(200).json({
+    message: "Login Success!",
+    data: userExist.toObject({ getters: true }),
+  });
 };
 
 exports.getAllUsers = getAllUsers;

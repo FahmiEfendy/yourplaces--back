@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
@@ -24,6 +26,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Static used to return file (not execute)
+app.use("/uploads/images", express.static(path.join("uploads", "images")));
+
 app.use("/api/places", placesRoutes); // api/places/...
 app.use("/api/users", usersRoutes); // api/users/...
 
@@ -33,6 +38,9 @@ app.use((req, res, next) => {
 });
 
 app.use((error, req, res, next) => {
+  // Rollback (delete) when there is error one image upload, because image will automatically stored when sign up API hitted
+  if (req.file) fs.unlink(req.file.path, (err) => console.log(err));
+
   if (res.headerSent) return next(error);
 
   res.status(error.code || 500);
