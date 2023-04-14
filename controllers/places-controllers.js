@@ -109,8 +109,7 @@ const createPlace = async (req, res, next) => {
   const newPlace = new Place({
     title,
     description,
-    image:
-      "https://img.okezone.com/content/2022/02/04/337/2542154/mengenal-raja-yang-meratakan-puncak-bukit-demi-membangun-candi-borobudur-thVuwzm6PE.jpg",
+    image: req.file.path,
     address,
     coordinates,
     creator,
