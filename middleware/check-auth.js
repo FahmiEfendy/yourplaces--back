@@ -19,7 +19,7 @@ const checkToken = (req, res, next) => {
   } catch (err) {
     if (!token) {
       return next(
-        new HttpError(`Authentication failed because of ${err.message}`, 401)
+        new HttpError(`Authentication failed because of ${err.message}`, 403)
       );
     }
   }

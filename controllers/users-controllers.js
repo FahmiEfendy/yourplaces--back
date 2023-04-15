@@ -124,7 +124,7 @@ const login = async (req, res, next) => {
     return next(
       new HttpError(
         "Invalid credential, please input correct email and password!",
-        401
+        403
       )
     );
   }
@@ -144,7 +144,7 @@ const login = async (req, res, next) => {
 
   if (!isPasswordValid) {
     return next(
-      new HttpError("Invalid credential, please input correct password!", 401)
+      new HttpError("Invalid credential, please input correct password!", 403)
     );
   }
 
