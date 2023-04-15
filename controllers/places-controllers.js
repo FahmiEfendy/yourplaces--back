@@ -113,11 +113,11 @@ const createPlace = async (req, res, next) => {
     image: req.file.path,
     address,
     coordinates,
-    creator,
+    creator: req.userData.userId,
   });
 
   try {
-    user = await User.findById(creator);
+    user = await User.findById(req.userData.userId);
   } catch (err) {
     return next(
       new HttpError(
