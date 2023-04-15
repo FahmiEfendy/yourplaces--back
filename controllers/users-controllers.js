@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { validationResult } = require("express-validator");
 
 const User = require("../models/user");
@@ -82,9 +83,25 @@ const signUp = async (req, res, next) => {
     return next(error);
   }
 
+  let token;
+  try {
+    token = jwt.sign(
+      {
+        userId: newUser.id, // Id generated from MongoDB
+        email: newUser.email,
+      },
+      "SUPER_SECRET_DONT_SHARE",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    return next(
+      new HttpError(`Failed to create new user beacause of ${err.message}, 500`)
+    );
+  }
+
   res.status(201).json({
     message: "Successfully added a new user!",
-    data: newUser.toObject({ getters: true }),
+    data: { userId: newUser.id, email: newUser.email, token },
   });
 };
 
@@ -131,9 +148,25 @@ const login = async (req, res, next) => {
     );
   }
 
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: userExist.id, email: userExist.email },
+      "SUPER_SECRET_DONT_SHARE",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    return next(
+      new HttpError(
+        `Invalid credential, please correct input correct password!`,
+        500
+      )
+    );
+  }
+
   res.status(200).json({
     message: "Login Success!",
-    data: userExist.toObject({ getters: true }),
+    data: { userId: userExist.id, email: userExist.email, token },
   });
 };
 
