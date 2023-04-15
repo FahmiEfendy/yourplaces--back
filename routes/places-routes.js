@@ -1,6 +1,7 @@
 const express = require("express");
 const { check } = require("express-validator");
 
+const checkAuth = require("../middleware/check-auth");
 const fileUpload = require("../middleware/file-upload");
 
 const placesControllers = require("../controllers/places-controllers");
@@ -15,6 +16,10 @@ router.get("/user/:uid", placesControllers.getPlacesByUserId);
 
 // api/places/:pid
 router.get("/:pid", placesControllers.getPlaceByPlaceId);
+
+// ROUTE ABOVE THIS CAN BE ACCESSED WITHOUT AUTHENTICATION
+router.use(checkAuth);
+// ROUTE BELOW THIS CANNOT BE ACCESSED WITHOUT AUTHENTICATION
 
 // api/places/
 router.post(
