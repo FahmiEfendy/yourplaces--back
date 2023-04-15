@@ -90,7 +90,7 @@ const signUp = async (req, res, next) => {
         userId: newUser.id, // Id generated from MongoDB
         email: newUser.email,
       },
-      "SUPER_SECRET_DONT_SHARE",
+      process.env.JWT_TOKEN_KEY,
       { expiresIn: "1h" }
     );
   } catch (err) {
@@ -152,7 +152,7 @@ const login = async (req, res, next) => {
   try {
     token = jwt.sign(
       { userId: userExist.id, email: userExist.email },
-      "SUPER_SECRET_DONT_SHARE",
+      process.env.JWT_TOKEN_KEY,
       { expiresIn: "1h" }
     );
   } catch (err) {

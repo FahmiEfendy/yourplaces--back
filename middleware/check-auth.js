@@ -13,7 +13,7 @@ const checkToken = (req, res, next) => {
 
     // Verfity token
     // "SUPER_SECRET_DONT_SHARE": key when generate token
-    const decodedToken = jwt.verify(token, "SUPER_SECRET_DONT_SHARE");
+    const decodedToken = jwt.verify(token, process.env.JWT_TOKEN_KEY);
     req.userData = { userId: decodedToken.userId };
     next(); // Move to next rotue
   } catch (err) {
