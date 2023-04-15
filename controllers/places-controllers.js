@@ -182,6 +182,12 @@ const updatePlace = async (req, res, next) => {
     return next(error);
   }
 
+  if (selectedPlace.creator.toString() !== req.userData.userId) {
+    return next(
+      new HttpError("You are not authorized to edit this place", 401)
+    );
+  }
+
   selectedPlace.title = title;
   selectedPlace.description = description;
 

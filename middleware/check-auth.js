@@ -2,6 +2,8 @@ const jwt = require("jsonwebtoken");
 const HttpError = require("../models/http-error");
 
 const checkToken = (req, res, next) => {
+  if (req.method === "OPTIONS") return next();
+
   try {
     // "Bearer TOKEN" (Extract TOKEN with [1])
     const token = req.headers.authorization.split(" ")[1];
