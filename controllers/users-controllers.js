@@ -103,12 +103,31 @@ const login = async (req, res, next) => {
     return next(error);
   }
 
-  if (!userExist || userExist.password !== password) {
+  if (!userExist) {
     return next(
       new HttpError(
         "Invalid credential, please input correct email and password!",
         401
       )
+    );
+  }
+
+  let isPasswordValid = false;
+  try {
+    // Check if password match and return boolean value
+    isPasswordValid = await bcrypt.compare(password, userExist.password);
+  } catch (err) {
+    return next(
+      new HttpError(
+        `Could not logged you in because ${err.message}, please try again`,
+        500
+      )
+    );
+  }
+
+  if (!isPasswordValid) {
+    return next(
+      new HttpError("Invalid credential, please input correct password!", 401)
     );
   }
 
