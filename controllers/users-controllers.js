@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 const { validationResult } = require("express-validator");
 
 const User = require("../models/user");
@@ -52,11 +53,22 @@ const signUp = async (req, res, next) => {
     );
   }
 
+  // Encrypt Password
+  let hashedPassword;
+  try {
+    // Second asrgument from bcrypt.hash() define how strange the encryption
+    hashedPassword = await bcrypt.hash(password, 12);
+  } catch (err) {
+    return next(
+      new HttpError(`Could not create a user because of ${err.message}`, 500)
+    );
+  }
+
   const newUser = new User({
     name,
     email,
     image: req.file.path,
-    password,
+    password: hashedPassword,
     places: [],
   });
 
