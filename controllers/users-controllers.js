@@ -29,7 +29,8 @@ const signUp = async (req, res, next) => {
   if (!error.isEmpty()) {
     return next(
       new HttpError(
-        `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
+        `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`,
+        500
       )
     );
   }
@@ -158,7 +159,7 @@ const login = async (req, res, next) => {
   } catch (err) {
     return next(
       new HttpError(
-        `Invalid credential, please correct input correct password!`,
+        `Invalid credential, please input correct username and password!`,
         500
       )
     );

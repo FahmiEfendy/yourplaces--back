@@ -3,8 +3,11 @@ const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
+// const functions = require("firebase-functions");
 
 const HttpError = require("./models/http-error");
+
+require("dotenv").config();
 
 const usersRoutes = require("./routes/users-routes");
 const placesRoutes = require("./routes/places-routes");
@@ -53,6 +56,11 @@ mongoose
   )
   .then(() => {
     console.log("Successfully connected to database!");
-    app.listen(process.env.PORT || 5000);
+    app.listen(5000);
   })
-  .catch((error) => console.log("Failed to connect to database!", error));
+  .catch((error) => {
+    console.log("Failed to connect to database!", error);
+  });
+
+export default app;
+// exports.api = functions.https.onRequest(app);
