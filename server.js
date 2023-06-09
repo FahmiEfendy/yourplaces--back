@@ -3,7 +3,6 @@ const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
-// const functions = require("firebase-functions");
 
 const HttpError = require("./models/http-error");
 
@@ -61,6 +60,3 @@ mongoose
   .catch((error) => {
     console.log("Failed to connect to database!", error);
   });
-
-export default app;
-// exports.api = functions.https.onRequest(app);
