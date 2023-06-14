@@ -96,7 +96,7 @@ const signUp = async (req, res, next) => {
     );
   } catch (err) {
     return next(
-      new HttpError(`Failed to create new user beacause of ${err.message}, 500`)
+      new HttpError(`Failed to create new user beacause of ${err.message}`, 500)
     );
   }
 
