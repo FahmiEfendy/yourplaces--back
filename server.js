@@ -62,7 +62,7 @@ app.use((err, req, res, next) => {
   res.locals.error = err;
   const status = err.status || 500;
   res.status(status);
-  res.send("error");
+  res.render("error");
 });
 
 mongoose
@@ -71,7 +71,7 @@ mongoose
   )
   .then(() => {
     console.log("Successfully connected to database!");
-    app.listen(5000);
+    app.listen(process.env.PORT || 5000);
   })
   .catch((error) => {
     console.log("Failed to connect to database!", error);
