@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js",
-    "devStart": "nodemon server.js"
+    "devStart": "nodemon server.js",
+    "deploy": "firebase deploy --only functions"
   },
   "keywords": [],
   "author": "",
@@ -20,7 +21,8 @@
     "express": "^4.18.2",
     "express-validator": "^6.15.0",
     "firebase": "^9.22.1",
-    "firebase-functions": "^4.4.0",
+    "firebase-admin": "^11.11.0",
+    "firebase-functions": "^4.5.0",
     "jsonwebtoken": "^9.0.0",
     "mongoose": "^7.0.3",
     "mongoose-unique-validator": "^4.0.0",
@@ -31,6 +33,6 @@
     "nodemon": "^2.0.22"
   },
   "engines": {
-    "node": "16"
+    "node": "18"
   }
 }

@@ -1,8 +1,10 @@
 const fs = require("fs");
+const cors = require("cors");
 const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
+const functions = require("firebase-functions");
 
 const HttpError = require("./models/http-error");
 
@@ -15,7 +17,9 @@ const app = express();
 
 app.set("view engine", "ejs");
 
+app.use(cors());
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use((req, res, next) => {
   // Specify what IP Address allowed to access resource
@@ -31,25 +35,20 @@ app.use((req, res, next) => {
 });
 
 // Static used to return file (not execute)
-app.use("/uploads/images", express.static(path.join("uploads", "images")));
+app.use("/uploads/images", express.static(__dirname + "/uploads/images"));
 
 app.use("/api/places", placesRoutes); // api/places/...
 app.use("/api/users", usersRoutes); // api/users/...
 
-app.use((req, res, next) => {
-  const error = new HttpError("Could not find any matches routes!", 404);
-  throw error;
-});
+// app.use((error, req, res, next) => {
+//   // Rollback (delete) when there is error one image upload, because image will automatically stored when sign up API hitted
+//   if (req.file) fs.unlink(req.file.path, (err) => console.log(err));
 
-app.use((error, req, res, next) => {
-  // Rollback (delete) when there is error one image upload, because image will automatically stored when sign up API hitted
-  if (req.file) fs.unlink(req.file.path, (err) => console.log(err));
+//   if (res.headerSent) return next(error);
 
-  if (res.headerSent) return next(error);
-
-  res.status(error.code || 500);
-  res.json({ message: error.message || "An unknown error occured!" });
-});
+//   res.status(error.code || 500);
+//   res.json({ message: error.message || "An unknown error occured!" });
+// });
 
 // Error Handler
 app.use((req, res, next) => {
@@ -59,10 +58,9 @@ app.use((req, res, next) => {
 });
 
 app.use((err, req, res, next) => {
-  res.locals.error = err;
-  const status = err.status || 500;
-  res.status(status);
-  res.render("error");
+  res
+    .status(err.status || 500)
+    .json({ error: err.message || "Internal Server Error" });
 });
 
 mongoose
@@ -71,8 +69,10 @@ mongoose
   )
   .then(() => {
     console.log("Successfully connected to database!");
-    app.listen(process.env.PORT || 5000);
+    app.listen(5313);
   })
   .catch((error) => {
     console.log("Failed to connect to database!", error);
   });
+
+exports.api = functions.https.onRequest(app);
