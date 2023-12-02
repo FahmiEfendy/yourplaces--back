@@ -1,5 +1,6 @@
 const fs = require("fs");
 const mongoose = require("mongoose");
+const { storage } = require("../middleware/file-upload");
 const { validationResult } = require("express-validator");
 
 const User = require("../models/user");
@@ -41,21 +42,18 @@ const getPlacesByUserId = async (req, res, next) => {
     return next(error);
   }
 
-  // Show error if user doesn't have place
-  // if (!userWithPlaces || userWithPlaces.places.length < 1) {
-  //   const error = new HttpError(
-  //     `User with user id of ${userId} dont have a place!`,
-  //     404
-  //   );
+  if (!userWithPlaces || userWithPlaces.places.length < 1) {
+    const error = new HttpError(
+      `User with user id of ${userId} dont have a place!`,
+      404
+    );
 
-  //   return next(error);
-  // }
+    return next(error);
+  }
 
   res.status(200).json({
     message: `Successfully get all place from user with id of ${userId}`,
-    // data: userWithPlaces.places.map((place) =>
-    //   place.toObject({ getters: true })
-    // ),
+
     data: userWithPlaces.toObject({ getters: true }),
   });
 };
@@ -88,69 +86,86 @@ const getPlaceByPlaceId = async (req, res, next) => {
 };
 
 const createPlace = async (req, res, next) => {
-  const error = validationResult(req);
-  if (!error.isEmpty()) {
-    return next(
-      new HttpError(
-        `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
-      )
-    );
-  }
+  const file = req.file;
 
-  const { title, description, address, creator } = req.body;
+  const bucket = storage.bucket();
+  const storageRef = bucket.file(file.originalname);
+  const blobStream = storageRef.createWriteStream();
 
-  let coordinates;
-  let user;
+  blobStream.on("finish", async () => {
+    const error = validationResult(req);
+    if (!error.isEmpty()) {
+      return next(
+        new HttpError(
+          `Input value for ${error.errors[0].param} is an ${error.errors[0].msg}`
+        )
+      );
+    }
 
-  try {
-    coordinates = await addressToCoordinates(address);
-  } catch (error) {
-    return next(error);
-  }
+    const { title, description, address, creator } = req.body;
 
-  const newPlace = new Place({
-    title,
-    description,
-    image: req.file.path,
-    address,
-    coordinates,
-    creator: req.userData.userId,
+    let coordinates;
+    let user;
+
+    try {
+      coordinates = await addressToCoordinates(address);
+    } catch (error) {
+      return next(error);
+    }
+
+    const newPlace = new Place({
+      title,
+      description,
+      image: req.file.originalname,
+      address,
+      coordinates,
+      creator: req.userData.userId,
+    });
+
+    try {
+      user = await User.findById(req.userData.userId);
+    } catch (err) {
+      return next(
+        new HttpError(
+          `Failed to find a user with id of ${creator} because of ${err.message}`
+        ),
+        500
+      );
+    }
+
+    if (!user) {
+      return next(new HttpError(`There is no user with id of ${creator}`, 404));
+    }
+
+    try {
+      const sess = await mongoose.startSession();
+      sess.startTransaction();
+      await newPlace.save({ session: sess }); // Activate Session
+      user.places.push(newPlace); // Add newPlace to user
+      await user.save({ session: sess }); // Activate Session
+      await sess.commitTransaction(); // Run changes from activated session
+    } catch (err) {
+      const error = new HttpError(
+        `Failed to created new data because of ${err.message}`,
+        500
+      );
+      return next(error);
+    }
+
+    res.status(201).json({
+      message: "Successfully created new data!",
+      data: newPlace.toObject({ getters: true }),
+    });
   });
 
-  try {
-    user = await User.findById(req.userData.userId);
-  } catch (err) {
-    return next(
-      new HttpError(
-        `Failed to find a user with id of ${creator} because of ${err.message}`
-      ),
-      500
-    );
-  }
-
-  if (!user) {
-    return next(new HttpError(`There is no user with id of ${creator}`, 404));
-  }
-
-  try {
-    const sess = await mongoose.startSession();
-    sess.startTransaction();
-    await newPlace.save({ session: sess }); // Activate Session
-    user.places.push(newPlace); // Add newPlace to user
-    await user.save({ session: sess }); // Activate Session
-    await sess.commitTransaction(); // Run changes from activated session
-  } catch (err) {
-    const error = new HttpError(
-      `Failed to created new data because of ${err.message}`,
-      500
-    );
-    return next(error);
-  }
-
-  res.status(201).json({
-    message: "Successfully created new data!",
-    data: newPlace.toObject({ getters: true }),
+  blobStream.on("error", (error) => {
+    console.error(error);
+    res.status(500).json({
+      message: "File upload failed",
+    });
   });
+
+  blobStream.end(file.buffer);
 };
 
 const updatePlace = async (req, res, next) => {

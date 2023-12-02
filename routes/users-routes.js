@@ -4,7 +4,7 @@ const multer = require("multer");
 
 const router = express.Router();
 
-const { fileUpload } = require("../middleware/file-upload");
+const { fileUploadMiddleware } = require("../middleware/file-upload");
 
 const usersControllers = require("../controllers/users-controllers");
 
@@ -14,7 +14,7 @@ router.get("/", usersControllers.getAllUsers);
 // api/users/signup
 router.post(
   "/signup",
-  fileUpload.single("image"),
+  fileUploadMiddleware,
   // [
   //   check("name").isLength({ min: 5 }),
   //   check("email").normalizeEmail().isEmail(),

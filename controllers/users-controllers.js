@@ -29,9 +29,6 @@ const getAllUsers = async (req, res, next) => {
 const signUp = async (req, res, next) => {
   const file = req.file;
 
-  console.log(req.body);
-  console.log(req.file);
-
   const bucket = storage.bucket();
 
   const storageRef = bucket.file(file.originalname);
@@ -124,13 +121,12 @@ const signUp = async (req, res, next) => {
     });
   });
 
-  // blobStream.on("error", (error) => {
-  //   console.error(error);
-  //   res.status(500).json({
-  //     message: "File upload failed",
-  //   });
-  // });
-  console.log(req.file);
+  blobStream.on("error", (error) => {
+    console.error(error);
+    res.status(500).json({
+      message: "File upload failed",
+    });
+  });
 
   blobStream.end(file.buffer);
 };

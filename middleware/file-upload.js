@@ -1,8 +1,7 @@
-const uuid = require("uuid");
-const multer = require("multer");
+const Busboy = require("busboy");
 const admin = require("firebase-admin");
 
-var serviceAccount = require("../yourplaces-back-firebase-adminsdk-fynmo-a5adfc9b20.json");
+const serviceAccount = require("../yourplaces-back-firebase-adminsdk-fynmo-a5adfc9b20.json");
 
 const MIME_TYPE_MAP = {
   "image/png": "png",
@@ -12,43 +11,59 @@ const MIME_TYPE_MAP = {
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
-  storageBucket: "gs://yourplaces-back.appspot.com",
+  storageBucket: "yourplaces-back.appspot.com",
 });
 
 const storage = admin.storage();
 
-// const fileUpload = multer({
-//   limits: 500000, // 5 MB
-//   storage: multer.diskStorage({
-//     destination: (req, file, cb) => {
-//       cb(null, "uploads/images"); // saved image will be stored in this folder
-//     },
-//     filename: (req, file, cb) => {
-//       const ext = MIME_TYPE_MAP[file.mimetype]; // Check File Type
-//       cb(null, uuid.v4() + "." + ext); // Define Filename
-//     },
-//   }),
+const fileUploadMiddleware = (req, res, next) => {
+  if (
+    !req.headers["content-type"] ||
+    req.headers["content-type"].indexOf("multipart/form-data") !== 0
+  ) {
+    return next();
+  }
 
-//   fileFilter: (req, file, cb) => {
-//     const isValid = !!MIME_TYPE_MAP[file.mimetype]; // Check if there is matches mime type (return true or false)
-//     let error = isValid ? null : new Error("Invalid MIME Type!");
-//     cb(error, isValid);
-//   },
-// });
+  const busboy = new Busboy({ headers: req.headers });
 
-const fileUpload = multer({
-  limits: {
-    fileSize: 500000, // 5 MB limit
-  },
-  storage: multer.memoryStorage({}), // Store files in memory for processing
-  fileFilter: (req, file, cb) => {
-    const ext = MIME_TYPE_MAP[file.mimetype];
+  const buffers = [];
+  let formData = {};
+  let fileName = "";
+  let filePath = "";
+
+  busboy.on("field", (fieldname, val) => {
+    formData[fieldname] = val;
+  });
+
+  busboy.on("file", (fieldname, file, originalname, encoding, mimetype) => {
+    const ext = MIME_TYPE_MAP[mimetype];
     if (!ext) {
-      cb(new Error("Invalid MIME Type!"), false);
-    } else {
-      cb(null, true);
+      return res.status(400).json({ error: "Invalid File Type!" });
     }
-  },
-});
 
-module.exports = { fileUpload, storage };
+    const buffer = [];
+
+    file.on("data", (data) => {
+      buffer.push(data);
+    });
+
+    file.on("end", () => {
+      buffers.push(Buffer.concat(buffer));
+      fileName = originalname;
+      filePath = formData.address ? "places" : "users";
+    });
+  });
+
+  busboy.on("finish", () => {
+    req.body = formData;
+    req.file = {
+      originalname: `${filePath}/${fileName}`,
+      buffer: Buffer.concat(buffers),
+    };
+    next();
+  });
+
+  busboy.end(req.rawBody);
+};
+
+module.exports = { fileUploadMiddleware, storage };
