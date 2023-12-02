@@ -42,15 +42,6 @@ const getPlacesByUserId = async (req, res, next) => {
     return next(error);
   }
 
-  if (!userWithPlaces || userWithPlaces.places.length < 1) {
-    const error = new HttpError(
-      `User with user id of ${userId} dont have a place!`,
-      404
-    );
-
-    return next(error);
-  }
-
   res.status(200).json({
     message: `Successfully get all place from user with id of ${userId}`,
 
