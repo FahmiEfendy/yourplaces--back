@@ -63,7 +63,7 @@ const fileUploadMiddleware = (req, res, next) => {
     next();
   });
 
-  busboy.end(req.rawBody);
+  req.pipe(busboy);
 };
 
 module.exports = { fileUploadMiddleware, storage };
