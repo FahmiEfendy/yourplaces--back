@@ -1,5 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const functions = require("firebase-functions");
 const { validationResult } = require("express-validator");
 
 const { storage } = require("../middleware/file-upload");
@@ -7,6 +8,9 @@ const { storage } = require("../middleware/file-upload");
 const User = require("../models/user");
 
 const HttpError = require("../models/http-error");
+
+const JWT_TOKEN_KEY =
+  process.env.JWT_TOKEN_KEY || functions.config().jwt_token_key;
 
 const getAllUsers = async (req, res, next) => {
   let allUsers;
@@ -103,7 +107,7 @@ const signUp = async (req, res, next) => {
           userId: newUser.id, // Id generated from MongoDB
           email: newUser.email,
         },
-        process.env.JWT_TOKEN_KEY,
+        JWT_TOKEN_KEY,
         { expiresIn: "1h" }
       );
     } catch (err) {
@@ -180,7 +184,7 @@ const login = async (req, res, next) => {
   try {
     token = jwt.sign(
       { userId: userExist.id, email: userExist.email },
-      process.env.JWT_TOKEN_KEY,
+      JWT_TOKEN_KEY,
       { expiresIn: "1h" }
     );
   } catch (err) {

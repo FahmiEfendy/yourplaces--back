@@ -63,9 +63,13 @@ app.use((err, req, res, next) => {
     .json({ error: err.message || "Internal Server Error" });
 });
 
+const DB_USER = process.env.DB_USER || functions.config().db_user;
+const DB_PASSWORD = process.env.DB_PASSWORD || functions.config().db_password;
+const DB_NAME = process.env.DB_NAME || functions.config().db_name;
+
 mongoose
   .connect(
-    `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_NAME}.o1y8qtm.mongodb.net/?retryWrites=true&w=majority&appName=${process.env.DB_NAME}`
+    `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_NAME}.o1y8qtm.mongodb.net/?retryWrites=true&w=majority&appName=${DB_NAME}`
   )
   .then(() => {
     console.log("Successfully connected to database!");

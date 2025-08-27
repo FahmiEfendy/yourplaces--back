@@ -1,8 +1,12 @@
 const jwt = require("jsonwebtoken");
+const functions = require("firebase-functions");
 const HttpError = require("../models/http-error");
 
 const checkToken = (req, res, next) => {
   if (req.method === "OPTIONS") return next();
+
+  const JWT_TOKEN_KEY =
+    process.env.JWT_TOKEN_KEY || functions.config().jwt_token_key;
 
   try {
     // "Bearer TOKEN" (Extract TOKEN with [1])
@@ -13,7 +17,7 @@ const checkToken = (req, res, next) => {
 
     // Verfity token
     // "SUPER_SECRET_DONT_SHARE": key when generate token
-    const decodedToken = jwt.verify(token, process.env.JWT_TOKEN_KEY);
+    const decodedToken = jwt.verify(token, JWT_TOKEN_KEY);
     req.userData = { userId: decodedToken.userId };
     next(); // Move to next rotue
   } catch (err) {
