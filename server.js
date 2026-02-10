@@ -4,11 +4,13 @@ const path = require("path");
 const express = require("express");
 const mongoose = require("mongoose");
 const bodyParser = require("body-parser"); // Parse any incoming body to extract JSON data
+
+// Using Secret Params (functions.config() is deprecated)
 const functions = require("firebase-functions");
+const { defineSecret } = require("firebase-functions/params");
+const APP_CONFIG = defineSecret("YOUR_PLACES_SECRET");
 
 const HttpError = require("./models/http-error");
-
-require("dotenv").config();
 
 const usersRoutes = require("./routes/users-routes");
 const placesRoutes = require("./routes/places-routes");
@@ -63,20 +65,28 @@ app.use((err, req, res, next) => {
     .json({ error: err.message || "Internal Server Error" });
 });
 
-const DB_USER = process.env.DB_USER || functions.config().db_user;
-const DB_PASSWORD = process.env.DB_PASSWORD || functions.config().db_password;
-const DB_NAME = process.env.DB_NAME || functions.config().db_name;
+// MongoDB Connection
+let isConnected = false;
+async function connectDB(config) {
+  if (isConnected) return;
 
-mongoose
-  .connect(
-    `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_NAME}.o1y8qtm.mongodb.net/?retryWrites=true&w=majority&appName=${DB_NAME}`
-  )
-  .then(() => {
+  const { DB_USER, DB_PASSWORD, DB_NAME } = config;
+
+  await mongoose.connect(
+    `mongodb+srv://${encodeURIComponent(DB_USER)}:${encodeURIComponent(
+      DB_PASSWORD
+    )}@${DB_NAME}.o1y8qtm.mongodb.net/?retryWrites=true&w=majority&appName=${DB_NAME}`
+  );
+
+  isConnected = true;
     console.log("Successfully connected to database!");
-    app.listen(5313);
-  })
-  .catch((error) => {
-    console.log("Failed to connect to database!", error);
-  });
+}
 
-exports.api = functions.https.onRequest(app);
+
+exports.api = functions
+  .runWith({ secrets: [APP_CONFIG] })
+  .https.onRequest(async (req, res) => {
+    const config = JSON.parse(APP_CONFIG.value());
+    await connectDB(config);
+    app(req, res);
+  });
